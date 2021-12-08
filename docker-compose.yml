@@ -1,8 +1,9 @@
 version: '2'
 services:
     flask:
-      image: flask-face-identification:latest
+      image: flask-face-recognition:latest
       ports:
-        - "5000:5000"
+        - "5301:5000"
       volumes:
         - ./:/app
+      container_name: flask-face-recognition

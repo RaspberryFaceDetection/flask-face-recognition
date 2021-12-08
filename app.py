@@ -4,9 +4,30 @@ import face_recognition
 from flask import Flask, request, flash, redirect
 from werkzeug.utils import secure_filename
 
-from face_identification import get_image_owner_name
-
 app = Flask(__name__)
+
+
+def get_image_owner_name(image):
+    unknown_image = face_recognition.load_image_file(image)
+
+    try:
+        unknown_face_encoding = face_recognition.face_encodings(unknown_image)[0]
+    except IndexError:
+        print("Немає жодного лиця на фотографії")
+        os.remove(image)
+        return None
+
+    list_of_files = [f for f in glob.glob("faces/" + "*.jpg")]
+
+    for file in list_of_files:
+        saved_image = face_recognition.load_image_file(file)
+        results = face_recognition.compare_faces([face_recognition.face_encodings(saved_image)[0]],
+                                                 unknown_face_encoding,
+                                                 )
+        if results[0]:
+            return file.split("/")[1].split(".")[0]
+
+    return "Невідомий"
 
 
 @app.route('/get-recognition', methods=["GET", "POST"])
@@ -42,8 +63,8 @@ def save_image():
         filename = secure_filename(file.filename)
         file_path = os.path.join(f"tmp/{filename}")
         file.save(file_path)
-        unknown_image = face_recognition.load_image_file(file_path)
         try:
+            unknown_image = face_recognition.load_image_file(file_path)
             face_recognition.face_encodings(unknown_image)[0]
             os.replace(file_path, f"faces/{filename}")
         except IndexError:

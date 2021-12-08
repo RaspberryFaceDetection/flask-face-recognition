@@ -1,0 +1,69 @@
+name: Deploy Flask face recognition to Amazon EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # clone the repository
+    - name: Checkout
+      uses: actions/checkout@v2
+
+      # Build an image and up docker container with .env file
+    - name: Build and up docker container of feature store
+      run: |
+        make build
+        make up
+
+    - name: Lint with pylint
+      run: make pylint
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id         : ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key     : ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region                : ${{ secrets.AWS_REGION }}
+        role-to-assume            : ${{ secrets.AWS_ROLE_ARN }}
+        role-session-name         : ${{ secrets.AWS_ROLE_SESSION_NAME }}
+        role-duration-seconds     : 1200
+        role-skip-session-tagging : true
+
+    # Package needed to push an SSH public key to EC2 instance
+    - name: Install EC2 instance connect cli
+      run: pip install ec2instanceconnectcli
+
+    - name: Generate new SSH private and public keys
+      run: ssh-keygen -t rsa -f rsa_key
+
+    - name: Add instances to known hosts file
+      run: |
+        mkdir ~/.ssh
+        ssh-keyscan -t rsa ${{ secrets.INSTANCE_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Push SSH public key to the EC2 instance
+      run: |
+        aws ec2-instance-connect send-ssh-public-key \
+        --instance-id ${{ secrets.INSTANCE_ID }} \
+        --availability-zone ${{ secrets.AVAILABILITY_ZONE }} \
+        --instance-os-user ubuntu \
+        --ssh-public-key file://rsa_key.pub
+
+    - name: Copy code to EC2 instance
+      run: |
+        rsync -rP -e "ssh -i rsa_key" \
+        ${{ github.workspace }} \
+        ubuntu@${{ secrets.INSTANCE_HOST }}:~/
+
+    - name: Run deployment on EC2 instance
+      run: |
+        ssh -tt -i rsa_key \
+        ubuntu@${{ secrets.INSTANCE_HOST }} \
+        'cd flask-face-recognition ; \
+        make build ; make down ; make up
+

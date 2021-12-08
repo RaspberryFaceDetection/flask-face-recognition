@@ -1,5 +1,5 @@
 build:
-	docker build -t flask-face-identification:latest ./
+	docker build -t flask-face-recognition:latest ./
 
 up:
 	docker-compose up -d flask
@@ -18,6 +18,7 @@ clean:
 	docker rmi -f $$(docker images -f "dangling=true" -q) || true
 
 bash:
-	docker exec -it flask-face-identification_flask_1 bash
+	docker exec -it flask-face-recognition bash
 
-
+pylint:
+	docker exec flask-face-recognition pylint ./
