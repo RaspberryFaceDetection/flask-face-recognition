@@ -64,5 +64,5 @@ jobs:
         ssh -tt -i rsa_key \
         ubuntu@${{ secrets.INSTANCE_HOST }} \
         'cd flask-face-recognition ; \
-        make build ; make down ; make up
+        make build ; make down ; make up'
 
