@@ -14,14 +14,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-      # Build an image and up docker container with .env file
-    - name: Build and up docker container of feature store
-      run: |
-        make build
-        make up
-
-    - name: Lint with pylint
-      run: make pylint
+#    - name: Build and up docker container of flask face recognition
+#      run: |
+#        make build
+#        make up
+#
+#    - name: Lint with pylint
+#      run: make pylint
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
