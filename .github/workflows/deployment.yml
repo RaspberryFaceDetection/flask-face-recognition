@@ -3,7 +3,7 @@ name: Deploy Flask face recognition to Amazon EC2
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build_and_test:
