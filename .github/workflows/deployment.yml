@@ -14,13 +14,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-#    - name: Build and up docker container of flask face recognition
-#      run: |
-#        make build
-#        make up
-#
-#    - name: Lint with pylint
-#      run: make pylint
+    - name: Build and up docker container of flask face recognition
+      run: |
+        make build
+        make up
+
+    - name: Lint with pylint
+      run: make pylint
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -63,6 +63,6 @@ jobs:
       run: |
         ssh -tt -i rsa_key \
         ubuntu@${{ secrets.INSTANCE_HOST }} \
-        'cd flask-face-recognition ; \
+        'cd flask-face-recognition ; mkdir tmp; mkdir faces; \
         make build ; make down ; make up'
 
